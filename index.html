@@ -79,6 +79,13 @@ input:focus,select:focus{
 </tr>
 
 <tr>
+    <td>Count</td>
+    <td colspan="2">
+        <input type="number" id="count" value="1" min="1" step="1" oninput="calculate()">
+    </td>
+</tr>
+
+<tr>
     <td>GST Type</td>
     <td colspan="2">
         <select id="type" onchange="calculate()">
@@ -147,6 +154,8 @@ input:focus,select:focus{
 function calculate(){
 
     let amount = parseFloat(document.getElementById("amount").value) || 0;
+    let count = parseFloat(document.getElementById("count").value) || 1;
+    amount = amount * count;
     let rate = parseFloat(document.getElementById("rate").value);
     let type = document.getElementById("type").value;
 
