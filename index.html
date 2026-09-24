@@ -1,197 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GST Calculator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Calculator - Decimal.js</title>
 
-<style>
-body{
-    font-family: Calibri, Arial, sans-serif;
-    background:#f4f4f4;
-    padding:30px;
-}
+    <!-- Decimal.js for accurate decimal arithmetic -->
+    <script src="https://cdn.jsdelivr.net/npm/decimal.js/decimal.min.js"></script>
 
-table{
-    border-collapse:collapse;
-    width:700px;
-    background:#fff;
-    margin:auto;
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-}
+    <style>
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 30px;
+        }
 
-th{
-    background:#4CAF50;
-    color:#fff;
-    padding:12px;
-    font-size:22px;
-}
+        table {
+            border-collapse: collapse;
+            width: 850px;
+            max-width: 100%;
+            background: #fff;
+            margin: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+        }
 
-td{
-    border:1px solid #ccc;
-    padding:10px;
-}
+        th {
+            background: #4CAF50;
+            color: #fff;
+            padding: 12px;
+            font-size: 22px;
+        }
 
-input,select{
-    width:100%;
-    padding:8px;
-    font-size:15px;
-    box-sizing:border-box;
-}
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
 
-.result{
-    background:#f8f8f8;
-}
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
 
-.result td:first-child{
-    font-weight:bold;
-}
+        .result {
+            background: #f8f8f8;
+        }
 
-.text-right{
-    text-align:right;
-}
+        .result td:first-child {
+            font-weight: bold;
+        }
 
-.header{
-    background:#d9ead3;
-    font-weight:bold;
-    text-align:center;
-}
+        .text-right {
+            text-align: right;
+        }
 
-input:focus,select:focus{
-    outline:none;
-    border:2px solid #4CAF50;
-}
-</style>
+        .header {
+            background: #d9ead3;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .section {
+            background: #eeeeee;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .difference {
+            background: #fff3cd;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border: 2px solid #4CAF50;
+        }
+
+        .note {
+            width: 850px;
+            max-width: 100%;
+            margin: 20px auto 0;
+            background: #fff;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+            box-sizing: border-box;
+        }
+
+        .note strong {
+            color: #b26a00;
+        }
+    </style>
 </head>
+
 <body>
 
 <table>
 
-<tr>
-    <th colspan="3">GST Calculator</th>
-</tr>
+    <tr>
+        <th colspan="3">GST Calculator</th>
+    </tr>
 
-<tr>
-    <td>Amount (₹)</td>
-    <td colspan="2">
-        <input type="number" id="amount" placeholder="Enter Amount" oninput="calculate()">
-    </td>
-</tr>
+    <tr>
+        <td>Amount (₹)</td>
+        <td colspan="2">
+            <input
+                type="text"
+                id="amount"
+                placeholder="Enter Amount"
+                oninput="calculate()"
+            >
+        </td>
+    </tr>
 
-<tr>
-    <td>Count</td>
-    <td colspan="2">
-        <input type="number" id="count" value="1" min="1" step="1" oninput="calculate()">
-    </td>
-</tr>
+    <tr>
+        <td>Count</td>
+        <td colspan="2">
+            <input
+                type="number"
+                id="count"
+                value="1"
+                min="1"
+                step="1"
+                oninput="calculate()"
+            >
+        </td>
+    </tr>
 
-<tr>
-    <td>GST Type</td>
-    <td colspan="2">
-        <select id="type" onchange="calculate()">
-            <option value="exclude">GST Exclude (Add GST)</option>
-            <option value="include" selected>GST Include (Remove GST)</option>
-        </select>
-    </td>
-</tr>
+    <tr>
+        <td>GST Type</td>
+        <td colspan="2">
+            <select id="type" onchange="calculate()">
+                <option value="exclude">GST Exclude (Add GST)</option>
+                <option value="include" selected>GST Include (Remove GST)</option>
+            </select>
+        </td>
+    </tr>
 
-<tr>
-    <td>GST Rate</td>
-    <td colspan="2">
-        <select id="rate" onchange="calculate()">
-            <option value="0">0%</option>
-            <option value="3">3%</option>
-            <option value="5" selected>5%</option>
-            <option value="12">12%</option>
-            <option value="18">18%</option>
-            <option value="28">28%</option>
-            <option value="40">40%</option>
-            <option value="50">50%</option>
-            <option value="100">100%</option>
-        </select>
-    </td>
-</tr>
+    <tr>
+        <td>Supply Type</td>
+        <td colspan="2">
+            <select id="supplyType" onchange="calculate()">
+                <option value="intra" selected>Intra-State (CGST + SGST)</option>
+                <option value="inter">Inter-State (IGST)</option>
+            </select>
+        </td>
+    </tr>
 
-<tr class="header">
-    <td>Field</td>
-    <td>2 Decimal</td>
-    <td>6 Decimal</td>
-</tr>
+    <tr>
+        <td>GST Rate</td>
+        <td colspan="2">
+            <select id="rate" onchange="calculate()">
+                <option value="0">0%</option>
+                <option value="3">3%</option>
+                <option value="5" selected>5%</option>
+                <option value="12">12%</option>
+                <option value="18">18%</option>
+                <option value="28">28%</option>
+                <option value="40">40%</option>
+            </select>
+        </td>
+    </tr>
 
-<tr class="result">
-    <td>Base Amount</td>
-    <td class="text-right" id="base2">₹ 0.00</td>
-    <td class="text-right" id="base6">₹ 0.000000</td>
-</tr>
+    <tr class="header">
+        <td>Field</td>
+        <td>2 Decimal</td>
+        <td>6 Decimal</td>
+    </tr>
 
-<tr class="result">
-    <td>GST Amount</td>
-    <td class="text-right" id="gst2">₹ 0.00</td>
-    <td class="text-right" id="gst6">₹ 0.000000</td>
-</tr>
+    <tr class="result">
+        <td>Base Amount</td>
+        <td class="text-right" id="base2">₹ 0.00</td>
+        <td class="text-right" id="base6">₹ 0.000000</td>
+    </tr>
 
-<tr class="result">
-    <td>CGST</td>
-    <td class="text-right" id="cgst2">₹ 0.00</td>
-    <td class="text-right" id="cgst6">₹ 0.000000</td>
-</tr>
+    <tr class="result">
+        <td>GST Amount</td>
+        <td class="text-right" id="gst2">₹ 0.00</td>
+        <td class="text-right" id="gst6">₹ 0.000000</td>
+    </tr>
 
-<tr class="result">
-    <td>SGST</td>
-    <td class="text-right" id="sgst2">₹ 0.00</td>
-    <td class="text-right" id="sgst6">₹ 0.000000</td>
-</tr>
+    <tr class="result">
+        <td id="tax1Label">CGST</td>
+        <td class="text-right" id="tax12">₹ 0.00</td>
+        <td class="text-right" id="tax16">₹ 0.000000</td>
+    </tr>
 
-<tr class="result">
-    <td>Total Amount</td>
-    <td class="text-right" id="total2">₹ 0.00</td>
-    <td class="text-right" id="total6">₹ 0.000000</td>
-</tr>
+    <tr class="result" id="tax2Row">
+        <td id="tax2Label">SGST</td>
+        <td class="text-right" id="tax22">₹ 0.00</td>
+        <td class="text-right" id="tax26">₹ 0.000000</td>
+    </tr>
+
+    <tr class="result">
+        <td>Rounded GST Amount</td>
+        <td class="text-right" id="roundedGst2">₹ 0.00</td>
+        <td class="text-right" id="roundedGst6">₹ 0.000000</td>
+    </tr>
+
+    <tr class="result difference">
+        <td>Rounding Difference</td>
+        <td class="text-right" id="roundingDifference2">₹ 0.00</td>
+        <td class="text-right" id="roundingDifference6">₹ 0.000000</td>
+    </tr>
+
+    <tr class="result">
+        <td>Total Amount</td>
+        <td class="text-right" id="total2">₹ 0.00</td>
+        <td class="text-right" id="total6">₹ 0.000000</td>
+    </tr>
 
 </table>
 
+<div class="note">
+    <strong>Note:</strong>
+    6-decimal values are calculated using Decimal.js.
+    The rounding difference is displayed separately.
+    CGST/SGST reconciliation is not automatically adjusted.
+</div>
+
 <script>
-function calculate(){
 
-    let amount = parseFloat(document.getElementById("amount").value) || 0;
-    let count = parseFloat(document.getElementById("count").value) || 1;
-    amount = amount * count;
-    let rate = parseFloat(document.getElementById("rate").value);
-    let type = document.getElementById("type").value;
+    /*
+     * Decimal.js configuration
+     *
+     * precision = number of significant digits used internally.
+     * Keep this comfortably higher than the 6 decimals you want to store.
+     */
+    Decimal.set({
+        precision: 40,
+        rounding: Decimal.ROUND_HALF_UP
+    });
 
-    let base = 0;
-    let gst = 0;
-    let total = 0;
-
-    if(type === "exclude"){
-        // GST Excluded (Add GST)
-        base = amount;
-        gst = base * rate / 100;
-        total = base + gst;
-    }else{
-        // GST Included (Extract GST)
-        total = amount;
-        base = total / (1 + rate / 100);
-        gst = total - base;
+    function D(value) {
+        return new Decimal(value || "0");
     }
 
-    let cgst = gst / 2;
-    let sgst = gst / 2;
+    function format2(value) {
+        return "₹ " + value.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2);
+    }
 
-    // 2 Decimal
-    document.getElementById("base2").innerHTML = "₹ " + base.toFixed(2);
-    document.getElementById("gst2").innerHTML = "₹ " + gst.toFixed(2);
-    document.getElementById("cgst2").innerHTML = "₹ " + cgst.toFixed(2);
-    document.getElementById("sgst2").innerHTML = "₹ " + sgst.toFixed(2);
-    document.getElementById("total2").innerHTML = "₹ " + total.toFixed(2);
+    function format6(value) {
+        return "₹ " + value.toDecimalPlaces(6, Decimal.ROUND_HALF_UP).toFixed(6);
+    }
 
-    // 6 Decimal
-    document.getElementById("base6").innerHTML = "₹ " + base.toFixed(6);
-    document.getElementById("gst6").innerHTML = "₹ " + gst.toFixed(6);
-    document.getElementById("cgst6").innerHTML = "₹ " + cgst.toFixed(6);
-    document.getElementById("sgst6").innerHTML = "₹ " + sgst.toFixed(6);
-    document.getElementById("total6").innerHTML = "₹ " + total.toFixed(6);
-}
+    function calculate() {
+
+        try {
+
+            const amountInput = document.getElementById("amount").value.trim();
+
+            if (!amountInput) {
+                reset();
+                return;
+            }
+
+            if (!/^\d+(\.\d+)?$/.test(amountInput)) {
+                reset();
+                return;
+            }
+
+            const amount = D(amountInput);
+
+            const countValue = document.getElementById("count").value;
+            const count = D(countValue);
+
+            const rate = D(document.getElementById("rate").value);
+
+            const type = document.getElementById("type").value;
+
+            const supplyType = document.getElementById("supplyType").value;
+
+            if (amount.isNegative() || count.lte(0) || rate.isNegative()) {
+                reset();
+                return;
+            }
+
+            /*
+             * Total amount for all quantities
+             */
+            const enteredAmount = amount.mul(count);
+
+            let base;
+            let gst;
+            let total;
+
+            /*
+             * GST EXCLUSIVE
+             *
+             * Example:
+             * Base = 100
+             * GST  = 5
+             * Total = 105
+             */
+            if (type === "exclude") {
+
+                base = enteredAmount;
+
+                gst = base
+                    .mul(rate)
+                    .div(100);
+
+                total = base.plus(gst);
+
+            } else {
+
+                /*
+                 * GST INCLUSIVE
+                 *
+                 * Example:
+                 * Total = 1.00
+                 * GST = 5%
+                 *
+                 * Base = 1 * 100 / 105
+                 */
+                total = enteredAmount;
+
+                base = total
+                    .mul(100)
+                    .div(
+                        new Decimal(100).plus(rate)
+                    );
+
+                gst = total.minus(base);
+            }
+
+            /*
+             * TAX COMPONENTS
+             */
+            let cgst = D(0);
+            let sgst = D(0);
+            let igst = D(0);
+
+            if (supplyType === "intra") {
+
+                cgst = gst.div(2);
+                sgst = gst.div(2);
+
+                document.getElementById("tax1Label").innerText = "CGST";
+                document.getElementById("tax2Label").innerText = "SGST";
+
+                document.getElementById("tax2Row").style.display = "";
+
+                document.getElementById("tax12").innerText = format2(cgst);
+                document.getElementById("tax16").innerText = format6(cgst);
+
+                document.getElementById("tax22").innerText = format2(sgst);
+                document.getElementById("tax26").innerText = format6(sgst);
+
+            } else {
+
+                igst = gst;
+
+                document.getElementById("tax1Label").innerText = "IGST";
+
+                document.getElementById("tax12").innerText = format2(igst);
+                document.getElementById("tax16").innerText = format6(igst);
+
+                document.getElementById("tax2Row").style.display = "none";
+            }
+
+            /*
+             * 2-DECIMAL ROUNDING
+             */
+            const roundedGst = gst.toDecimalPlaces(
+                2,
+                Decimal.ROUND_HALF_UP
+            );
+
+            let roundedTaxComponentTotal;
+
+            if (supplyType === "intra") {
+
+                const roundedCGST = cgst.toDecimalPlaces(
+                    2,
+                    Decimal.ROUND_HALF_UP
+                );
+
+                const roundedSGST = sgst.toDecimalPlaces(
+                    2,
+                    Decimal.ROUND_HALF_UP
+                );
+
+                roundedTaxComponentTotal = roundedCGST.plus(roundedSGST);
+
+            } else {
+
+                roundedTaxComponentTotal = igst.toDecimalPlaces(
+                    2,
+                    Decimal.ROUND_HALF_UP
+                );
+            }
+
+            /*
+             * This tells us whether
+             *
+             * rounded CGST + rounded SGST
+             *
+             * matches
+             *
+             * rounded GST
+             *
+             */
+            const roundingDifference = roundedGst.minus(
+                roundedTaxComponentTotal
+            );
+
+            /*
+             * DISPLAY RESULTS
+             */
+
+            document.getElementById("base2").innerText = format2(base);
+            document.getElementById("base6").innerText = format6(base);
+
+            document.getElementById("gst2").innerText = format2(gst);
+            document.getElementById("gst6").innerText = format6(gst);
+
+            document.getElementById("roundedGst2").innerText =
+                format2(roundedGst);
+
+            document.getElementById("roundedGst6").innerText =
+                format6(roundedGst);
+
+            document.getElementById("roundingDifference2").innerText =
+                format2(roundingDifference);
+
+            document.getElementById("roundingDifference6").innerText =
+                format6(roundingDifference);
+
+            document.getElementById("total2").innerText =
+                format2(total);
+
+            document.getElementById("total6").innerText =
+                format6(total);
+
+        } catch (error) {
+
+            console.error("GST calculation error:", error);
+
+            reset();
+        }
+    }
+
+    function reset() {
+
+        const ids = [
+            "base2",
+            "gst2",
+            "tax12",
+            "tax22",
+            "roundedGst2",
+            "roundingDifference2",
+            "total2"
+        ];
+
+        ids.forEach(function(id) {
+            const element = document.getElementById(id);
+
+            if (element) {
+                element.innerText = "₹ 0.00";
+            }
+        });
+
+        const ids6 = [
+            "base6",
+            "gst6",
+            "tax16",
+            "tax26",
+            "roundedGst6",
+            "roundingDifference6",
+            "total6"
+        ];
+
+        ids6.forEach(function(id) {
+            const element = document.getElementById(id);
+
+            if (element) {
+                element.innerText = "₹ 0.000000";
+            }
+        });
+    }
+
+    /*
+     * Initial calculation
+     */
+    calculate();
+
 </script>
 
 </body>
